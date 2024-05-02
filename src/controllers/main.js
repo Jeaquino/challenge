@@ -162,9 +162,7 @@ const mainController = {
     )
   },
   deleteBook:(req,res)=>{
-    db.BooksAuthors.update({
-      BookId:0
-    },{
+    db.BooksAuthors.destroy({
       where:{
         BookId:req.params.id
       }
