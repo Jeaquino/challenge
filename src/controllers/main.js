@@ -123,12 +123,37 @@ const mainController = {
     res.render('home');
   },
   edit: (req, res) => {
+  db.Book.findByPk(req.params.id)
+    .then(libro=>{
+       console.log(libro)
+       res.render('editBook', {id: req.params.id,libro})
+    })
+    .catch(e=>{
+      res.send(error)
+    })
+    
     // Implement edit book
-    res.render('editBook', {id: req.params.id})
+   
   },
-  processEdit: (req, res) => {
+  processEdit: (req, res) => {   
+    let {title,cover,description}=req.body
+
+    let nuevoLibro={
+      title:title,
+      cover:cover,
+      description:description
+    }
+
+    db.Book.update({
+      title:title,
+      cover:cover,
+      description:description},
+      {where:{id:req.params.id}})
+      .then(resultado=>{
+        res.redirect('/')
+      })
     // Implement edit book
-    res.render('home');
+    ;
   }
 };
 
