@@ -23,7 +23,8 @@
       </form>
         <% if(libros != undefined && libros.length>0){ %>
        <% libros.forEach(elemento=>{ %>
-          <h2><%= elemento.title  %></h2>
+        <a href="/books/detail/<%= elemento.id %>" class="icon-link">
+         <h2><%= elemento.title  %></h2></a>
       <%  })%>
 <% } %>
     <div class="list-group">
