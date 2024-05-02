@@ -154,6 +154,36 @@ const mainController = {
       })
     // Implement edit book
     ;
+  },
+  delete:(req,res)=>{
+    db.Book.findByPk(req.params.id)
+    .then(libro=>
+      {res.render("delete",{libro:libro})}
+    )
+  },
+  deleteBook:(req,res)=>{
+    db.BooksAuthors.update({
+      BookId:0
+    },{
+      where:{
+        BookId:req.params.id
+      }
+    })
+    .then(libroBorrado=>{
+      db.Book.destroy({where:{
+      id:req.params.id
+    }}) 
+    .then(resultado=>{
+      res.redirect("/")
+    })
+
+
+
+
+    
+   
+    }
+    )
   }
 };
 
