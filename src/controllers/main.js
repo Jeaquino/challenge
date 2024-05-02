@@ -1,6 +1,6 @@
 const bcryptjs = require('bcryptjs');
 const db = require('../database/models');
-
+const Op = db.Sequelize.Op;
 const mainController = {
   home: (req, res) => {
     db.Book.findAll({
@@ -12,15 +12,43 @@ const mainController = {
       .catch((error) => console.log(error));
   },
   bookDetail: (req, res) => {
+    db.Book.findByPk(req.params.id)
+    .then(elemento=>{
+      res.render("bookDetail",{elemento})
+    })
+    .catch(error=>{
+      res.send(error)
+    })
     // Implement look for details in the database
-    res.render('bookDetail');
+  /*   res.render('bookDetail'); */
   },
   bookSearch: (req, res) => {
-    res.render('search', { books: [] });
+    db.Book.findAll({
+      where:{
+       title:{[Op.like]: "%"+req.body+"%"}}
+    })
+    .then(libros=>{
+      res.render('search', { libros });
+    })
+    .catch(error=>{
+      res.send(error)
+    })
+
+    
   },
   bookSearchResult: (req, res) => {
+    db.Book.findAll({
+      where:{
+       title:{[Op.like]: "%"+req.body.title+"%"}}
+    })
+    .then(libros=>{
+      res.render('search', { libros });
+    })
+    .catch(error=>{
+      res.send(error)
+    })
     // Implement search by title
-    res.render('search');
+   /*  res.render('search'); */
   },
   deleteBook: (req, res) => {
     // Implement delete book
@@ -33,9 +61,42 @@ const mainController = {
       })
       .catch((error) => console.log(error));
   },
-  authorBooks: (req, res) => {
+  authorBooks:(req, res) => {
     // Implement books by author
-    res.render('authorBooks');
+    db.BooksAuthors.findAll({
+      where: {
+        AuthorId:req.params.id
+      }})
+      .then(librosAutores=>{
+        let libros= librosAutores.map(elemento=>{
+           return db.Book.findByPk(
+            elemento.BookId)
+          
+        })
+        
+        return Promise.all(libros) })
+        .then(resultado=>{
+          res.render("authorBooks", {libros:resultado
+        })
+      })
+/*       return Promise.all(libros)
+
+        })
+        .then(libros2=>{
+          console.log(libro)
+          res.render("authorBooks",{libros:libros2})
+        }) */
+/*       .catch(e=>{
+        res.send(e)
+      }); */
+
+
+
+    
+
+   
+  
+ ; 
   },
   register: (req, res) => {
     res.render('register');
