@@ -13,28 +13,22 @@
 
     <div class="container">
       <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
-      
+        <% author.authors.forEach(book => { %>
         <div class="feature col">
           <div class="feature-icon bg-gradient">
-            <img class="d-block mx-auto mb-4" src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Catcher-in-the-rye-red-cover.jpg" alt="" width="172" height="257">
+            <img class="d-block mx-auto mb-4" src="<%= author.cover %>" alt="<%= author.title %>" width="172" height="257">
           </div>
-          <h2>Book Title</h2>
-          <p>Book description.</p>
-          <a href="#" class="icon-link">
-            Detail
-          </a>
-        </div>
+          <h2><%= author.title %></h2>
+          <p><%= author.description %></p>
+          <a href="/authors/<%= author.id %>/books" class="icon-link">
 
-        <div class="feature col">
-          <div class="feature-icon bg-gradient">
-            <img class="d-block mx-auto mb-4" src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Catcher-in-the-rye-red-cover.jpg" alt="" width="172" height="257">
-          </div>
-          <h2>Book Title</h2>
-          <p>Book description.</p>
-          <a href="#" class="icon-link">
-            Detail
+            <a href="/books/detail/<%= author.id %>" class="icon-link">Detail</a>
+            
           </a>
+          <% }); %>
         </div>
+        
+       
 
 
   </div>
