@@ -10,9 +10,12 @@ function rememberMe(req,res,next){
           .then(usuarioALoguearse=>{
             if(usuarioALoguearse != undefined){
                 req.session.usuarioLogueado = usuarioALoguearse;
-            }});
-    }
+            }
+            next();
+          });
+        } else {
     next();
+        }
 }
 
 module.exports = rememberMe;
