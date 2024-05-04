@@ -7,7 +7,7 @@ const cookieparser=require("cookie-parser")
 const cookieCheck = require('./middlewares/cookieCheck');
 const app = express();
 
-
+app.use(cookieparser());
 
 
 
@@ -27,7 +27,7 @@ app.set('views', 'src/views');
 
 app.use('/', mainRouter);
 
-app.use(cookieparser());
+
 app.use(cookieCheck);
 
 app.listen(3000, () => {
