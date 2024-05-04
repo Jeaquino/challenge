@@ -2,15 +2,10 @@ const bcryptjs = require('bcryptjs');
 const db = require('../database/models');
 const Op = db.Sequelize.Op;
 const {validationResult} = require('express-validator');
-
-
 const mainController = {
 
+ //HOME
 
-
-  //HOME
-
-  
   home: (req, res) => {
     db.Book.findAll({
 
@@ -22,12 +17,10 @@ const mainController = {
       })
       .catch((error) => console.log(error));
   },
+//DETALLE / DETAIL
 
 
-  //DETAIL
-
-
-  bookDetail: async (req, res) => {
+bookDetail: async (req, res) => {
     let libro = await db.Book.findByPk(req.params.id, {
       include: [{ association: "authors" }],
     });
@@ -37,12 +30,13 @@ const mainController = {
     res.render("bookDetail", { libro, autores, session: req.session });
   },
 
-  //SEARCH
+  //BUSCADOR / SEARCH
 
 
   bookSearch: (req, res) => {
     res.render("search", {  session: req.session });
   },
+
   bookSearchResult: async (req, res) => {
     let libros = await db.Book.findAll({
       where: {
@@ -71,7 +65,7 @@ const mainController = {
     res.redirect("/");
   },
 
-  //AUTHOR
+  //AUTORES / AUTHORS 
 
 
   authors: (req, res) => {
@@ -91,8 +85,7 @@ const mainController = {
     res.render("authorBooks", { libros, session: req.session });
   },
 
-//REGISTER
-
+// REGISTRO / REGISTER
 
   register: (req, res) => {
     res.render("register", { session: req.session });
