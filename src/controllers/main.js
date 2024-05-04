@@ -6,170 +6,188 @@ const {validationResult} = require('express-validator');
 
 const mainController = {
 
+
+
+  //HOME
+
+  
   home: (req, res) => {
     db.Book.findAll({
-      include: [{ association: 'authors' }]
+
+      include: [{ association: "authors" }],
     })
       .then((books) => {
-        res.render('home', { books });
+        console.log(req.session);
+        res.render("home", { books, session: req.session });
       })
       .catch((error) => console.log(error));
   },
 
 
-  //DETALLE
+  //DETAIL
 
 
   bookDetail: async (req, res) => {
-    try {
-      const bookId = req.params.id;
-      const book = await db.Book.findByPk(bookId, { include: [{ association: 'authors' }] });
-
-      if (!book) {
-        return res.status(404).send('Libro no encontrado');
-      }
-
-      res.render('bookDetail', { book });
-    } catch (error) {
-      console.error('Error al obtener el libro:', error);
-      res.status(500).send('Error interno del servidor');
-    }
+    let libro = await db.Book.findByPk(req.params.id, {
+      include: [{ association: "authors" }],
+    });
+    let autores = libro.authors.map((autor) => {
+      return autor.name;
+    });
+    res.render("bookDetail", { libro, autores, session: req.session });
   },
 
-  //BUSCADOR 
+  //SEARCH
+
 
   bookSearch: (req, res) => {
-    res.render('search', { books: [] });
+    res.render("search", {  session: req.session });
   },
-  bookSearchResult: (req, res) => {
-    db.Book.findAll({
+  bookSearchResult: async (req, res) => {
+    let libros = await db.Book.findAll({
       where: {
-        title: { [Op.like]: `%${req.body.title}%` }
+        title: { [Op.like]: "%" + req.body.title + "%" },
       },
-      include: [{ association: 'authors' }]
-    })
-      .then((books) => {
-        res.render('search', { books });
-      })
-      .catch((error) => console.log(error));
+      include: [{ association: "authors" }],
+    });
+    res.render("search", { libros, session: req.session });
   },
+
 
   //DELETE
 
-  deleteBook: (req, res) => {
-    // Implement delete book
-    res.render('home');
+
+  deleteBook: async (req, res) => {
+    await db.BookAuthor.destroy({
+      where: {
+        BookId: req.params.id,
+      },
+    });
+    await db.Book.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+    res.redirect("/");
   },
 
-  //AUTHORS
+  //AUTHOR
+
 
   authors: (req, res) => {
     db.Author.findAll()
       .then((authors) => {
-        res.render('authors', { authors });
+        res.render("authors", { authors, session: req.session });
       })
       .catch((error) => console.log(error));
   },
 
 
   authorBooks: async (req, res) => {
-    try {
-      const AuthorId = req.params.id;
-      const author = await db.Book.findByPk(AuthorId, { include: [{ association: 'authors' }] });
-
-      if (!author) {
-        return res.status(404).send('Libro no encontrado');
-      }
-
-      res.render('authorBooks', { author });
-    } catch (error) {
-      console.error('Error al obtener el libro:', error);
-      res.status(500).send('Error interno del servidor');
-    }
+    let autor = await db.Author.findByPk(req.params.id, {
+      include: [{ association: "books" }],
+    });
+    let libros = autor.books;
+    res.render("authorBooks", { libros, session: req.session });
   },
 
-  //REGISTRO
+//REGISTER
+
 
   register: (req, res) => {
-    res.render('register');
+    res.render("register", { session: req.session });
   },
-  processRegister: (req, res) => {
-    db.User.create({
-      Name: req.body.name,
-      Email: req.body.email,
-      Country: req.body.country,
-      Pass: bcryptjs.hashSync(req.body.password, 10),
-      CategoryId: req.body.category
-    })
-      .then(() => {
-        res.redirect('/');
-      })
-      .catch((error) => console.log(error));
+  processRegister: async (req, res) => {
+    let errores = validationResult(req);
+    if (errores.isEmpty()) {
+      await db.User.create({
+        Name: req.body.name,
+        Email: req.body.email,
+        Country: req.body.country,
+        Pass: bcryptjs.hashSync(req.body.password, 10),
+        CategoryId: req.body.category,
+      });
+      res.redirect("/");
+    } else {
+      return res.render("register", {
+        mensajeDeError: errores.mapped(),
+        old: req.body,
+        session: req.session,
+      });
+    }
   },
 
-
-  //LOGIN
-
+// LOGIN 
 
   login: (req, res) => {
-    // Implement login process
-    res.render('login');
+    res.render("login", { session: req.session });
   },
-  processLogin: (req, res) => {
-    let errors = validationResult(req);
-    if (errors.isEmpty()){
-      db.User.findOne({
-        where:{
-          email:req.body.email,
-        }
-      })
-      .then(usuarioALoguearse=>{
-        if(usuarioALoguearse != undefined){
-          const password = bcryptjs.compareSync( req.body.password, usuarioALoguearse.Pass);
-          if (password) {
-            delete usuarioALoguearse.Pass;
-            req.session.usuarioLogueado = usuarioALoguearse;
+  processLogin: async (req, res) => {
+    let errores = validationResult(req);
 
-            if(req.body.remember !=undefined){
-              res.cookie('recordame',usuarioALoguearse.email,{maxAge:60000});
-            }
-            return res.redirect('/');
-          }
-          else{
-            return res.render('login',{errors: [{
-              msg:'Credenciales invalidas'
-            }]})
-          }
+    if (errores.isEmpty()) {
+      const user = await db.User.findOne({ where: { email: req.body.email } });
+      if (user.Email === req.body.email) {
+        let userSession = {
+          name: user.Name,
+          email: user.Email,
+          id: user.id,
+          isAdmin: user.CategoryId === 1 ? true : false,
+        };
+        req.session.user = userSession;
+        if (req.body.remember) {
+          let tiempoCookies = new Date(Date.now() + 60000);
+          res.cookie("userLogin", userSession, {
+            expires: tiempoCookies,
+            httpOnly: true,
+          });
         }
-        else{
-          return res.render('login',{errors:[{
-            msg:'Correo no registrado'
-        }]})
-        }
-      })
-    }
-    else{
-      res.render('login',{errors:errors.array(),old:req.body});
+        console.log("te encontre perra " + user.Email);
+        res.redirect("/");
+      }
+    } else {
+      return res.render("login", {
+        mensajeDeError: errores.mapped(),
+        old: req.body,
+        session: req.session,
+      });
     }
   },
-  logout:(req, res) => {
+  logout: (req, res) => {
     req.session.destroy();
-    return res.redirect('/users/login');
+    if (req.cookies.userLogin) {
+      res.cookie("userLogin", "", {
+        maxAge: -1,
+      });
+    }
+    res.redirect("/");
   },
-  
+
   //EDIT
 
 
-  edit: (req, res) => {
-    // Implement edit book
-    res.render('editBook', {id: req.params.id})
+  edit: async (req, res) => {
+    let libro = await db.Book.findByPk(req.params.id, {
+      include: [{ association: "authors" }],
+    });
+    res.render("editBook", { libro, session: req.session });
   },
-  processEdit: (req, res) => {
-    // Implement edit book
-    res.render('home');
-  }
+  processEdit: async (req, res) => {
+    let libroEditar = {
+      title: req.body.title,
+      description: req.body.description,
+      cover: req.body.cover,
+    };
+    await db.Book.update(libroEditar, {
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    res.redirect("/");
+  },
 };
 
+
+
 module.exports = mainController;
-
-

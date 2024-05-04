@@ -13,22 +13,19 @@
 
     <div class="container">
       <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
-        <% author.authors.forEach(book => { %>
-        <div class="feature col">
+      <% libros.forEach(libro => { %>
+       <div class="feature col">
           <div class="feature-icon bg-gradient">
-            <img class="d-block mx-auto mb-4" src="<%= author.cover %>" alt="<%= author.title %>" width="172" height="257">
+            <img class="d-block mx-auto mb-4" src="<%= libro.cover %>" alt="" width="172" height="257">
           </div>
-          <h2><%= author.title %></h2>
-          <p><%= author.description %></p>
-          <a href="/authors/<%= author.id %>/books" class="icon-link">
-
-            <a href="/books/detail/<%= author.id %>" class="icon-link">Detail</a>
-            
+          <h2><%= libro.title %></h2>
+          <p><%= libro.description  %></p>
+          <a href="/books/detail/<%= libro.id %>" class="icon-link">
+            Detail
           </a>
-          <% }); %>
         </div>
+      <% }) %>
         
-       
 
 
   </div>
