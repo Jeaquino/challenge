@@ -17,18 +17,37 @@
 
       <form action="/books/search" method="POST" class="col-12 col-lg-auto mb-3 me-lg-3" _lpchecked="1">
         <div class="input-group">
-          <input type="text" class="form-control" placeholder="Book Title..." name="title">
-          <button type="submit" class="btn btn-secondary">Search</button>
+          <input type="text" class="form-control" placeholder="Book Title..." name="title" id="titleInput">
+          <button type="submit" class="btn btn-secondary" id="searchButton">Search</button>
         </div>
+        <p id="error" style="color: red;"></p> <!-- Mensaje de error de la validaciones de FrontEnd-->
       </form>
 
 
-    <div class="list-group">
+      <% if (books.length > 0 ) { %>
+          <% books.forEach(book => { %>
+            <a href="/books/detail/<%= book.id %>" class="list-group-item list-group-item-action">
+              <img class="d-block mx-auto mb-4" src="<%= book.cover %>" alt="" width="172" height="257">
+                <h5 class="mb-1"><%= book.title %></h5>
+
+              <p class="mb-1">Authors:
+                <% book.authors.forEach((author, index) => { %>
+                  <%= `${author.name}${(index === book.authors.length - 1) ? '.' : ', '}` %>
+                <% }) %>
+              </p>
+              <small>Description: <%= book.description %></small>
+            </a>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p>No se encontraron resultados.</p>
+      <% } %>
+
       
-    </div>
   </div>
 </div>
 
+<script src="/js/search.js"></script>
 
 <%- include('partials/footer.ejs') %>
 </body>

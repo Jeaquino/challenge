@@ -11,8 +11,22 @@
     </ul>
 
     <div class="col-md-3 text-end">
-      <a href="/users/login" class="btn btn-outline-primary me-2">Login</a>
-      <a href="/users/register" class="btn btn-outline-primary me-2">Sign-up</a>
+      <% if (usuario && usuario.CategoryId == 1) {%>
+        <p><%= usuario.CategoryId == 1 ? "ADMIN" : "USER" %></p>
+
+        <%}%>
+        <% if (usuario !=undefined) {%>
+          <p><%= usuario.CategoryId == 1 ? " " : "USER" %></p>
+          <p><%= usuario.Name %></p>
+          <a href="/logout" id="logoutBtn"><p> SALIR</p></a>
+          <%} else{%>
+            <div class="col-md-3 text-end">
+              <a href="/users/login" class="btn btn-outline-primary me-2">Login</a>
+              <a href="/users/register" class="btn btn-outline-primary me-2">Sign-up</a>
+            </div>
+            <%}%>
     </div>
+  
+   
   </header>
 </div>
