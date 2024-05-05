@@ -19,11 +19,15 @@
           <p class="lead mb-4 fw-bold">Authors: </p>
           <p class="lead mb-4 fw-bold">Release Date: </p>
           <p class="lead mb-4"><%=elemento.description  %></p>
+
+          <!-- si en locals encuentra que esAdmin, esta tildada en true (proceso que se ve en adminMiddleware) aparecera la opcion editar y eliminar -->
           <% if (locals.esAdmin==true) { %>
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
             <button type="button" class="btn btn-primary btn-lg px-4 gap-3"><a href="/books/edit/<%= elemento.id  %>" style="color:black">Editar</a></button>
             <button type="button" class="btn btn-outline-secondary btn-lg px-4"><a href="/books/delete/<%= elemento.id  %>" style="color:black">Delete</a></button>
           </div>
+          <!-- --------------------------------------- -->
+          <!-- caso contrario no: -->
           <% } else{ %>
             <h1>DEBES SER ADMINISTRADOR PARA EDITAR O BORRAR LIBROS</h1>
            <%  }%>

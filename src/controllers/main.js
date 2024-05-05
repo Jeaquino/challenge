@@ -78,7 +78,7 @@ const mainController = {
             elemento.BookId)
           
         })
-        
+        //hace un recorrido sobre librosautores con el map, lo que returna cada libro de autor, se usa el promise.all para que se ejecute las veces necesarias
         return Promise.all(libros) })
         .then(resultado=>{
           res.render("authorBooks", {libros:resultado
@@ -130,15 +130,7 @@ const mainController = {
   processLogin: (req, res) => {
     // Implement login process
     let usuarioEncontrado = false
-/* 
-    let usuario=db.User.findAll()
-    .then(resultado=>{
-      resultado.filter(elemento=>{
-       return elemento.Email==req.body.email
-        
-      })
-    })
-    console.log(usuario) */
+
     db.User.findAll()
     .then(resultado => {
       ;
@@ -149,6 +141,7 @@ const mainController = {
             req.session.usuarioLogueado= elemento
             console.log(req.session.usuarioLogueado)
             usuarioEncontrado = true;
+            res.cookie("id",elemento.Id,{maxAge: 60000*5})
             return
           } else {
             usuarioEncontrado= false
@@ -184,6 +177,9 @@ const mainController = {
   
   },
   logout:(req,res)=>{
+    //borro cookie
+    res.clearCookie("id")
+    //borro session
     req.session.destroy()
     console.log(req.session)
     res.redirect("/")
@@ -228,6 +224,9 @@ const mainController = {
     )
   },
   deleteBook:(req,res)=>{
+
+    //hay que destruir la relacion primero antes de borrar el libro, en este caso
+    //se destruye porque no se puede modificar a 0 o null sino haria un update
     db.BooksAuthors.destroy({
       where:{
         BookId:req.params.id
