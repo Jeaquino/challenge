@@ -115,12 +115,71 @@ const mainController = {
       .catch((error) => console.log(error));
   },
   login: (req, res) => {
+ 
+        // Manejar el caso cuando no se encuentra el usuario o las credenciales son incorrectas
+    res.render("login", { error: "Usuario o contraseña incorrectos" });
+    
     // Implement login process
-    res.render('login');
+    
   },
   processLogin: (req, res) => {
     // Implement login process
-    res.render('home');
+    let usuarioEncontrado = false
+    db.User.findAll()
+    .then(resultado => {
+      ;
+  
+      resultado.forEach(elemento => {
+        if (elemento.Email == req.body.email) {
+          if (bcryptjs.compareSync(req.body.password,elemento.Pass )) {
+            usuarioEncontrado = true;
+            return
+          } else {
+            usuarioEncontrado= false
+            // Contraseña incorrecta
+            res.render("login", {
+              errors: {
+                password: {
+                  msg: "Contraseña invalida"
+                }
+              }
+            });
+          }
+        }
+      });
+  
+      // Si se encontro el usuario, enviar "Logueaste"
+      if (usuarioEncontrado==true) {
+        res.send("Logueaste");
+      } else {
+        // Si no se encontro el usuario, envia un mensaje de error
+        res.render("login", {
+          errors: {
+            email: "el Email no existe"
+          }
+        });
+      }
+    })
+    .catch(error => {
+      // Enviar una respuesta de error
+      res.send(error);
+    });
+      //--------------------
+   /*    resultado.forEach(elemento => {
+        if (elemento.email === req.body.Email && elemento.Pass === req.body.password) {
+          usuarioEncontrado = true;
+        }
+      });
+
+      if (usuarioEncontrado) {
+        console.log("logueaste")
+        res.redirect("/");
+      } else {
+        res.send("no se encontro ese usuario/contraseña")
+      } */
+      //------------------
+
+  
   },
   edit: (req, res) => {
   db.Book.findByPk(req.params.id)
