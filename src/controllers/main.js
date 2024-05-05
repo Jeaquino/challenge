@@ -1,26 +1,59 @@
 const bcryptjs = require('bcryptjs');
 const db = require('../database/models');
-
+const Op = db.Sequelize.Op;
 const mainController = {
-  home: (req, res) => {
+  home: (req, res) => { 
+
     db.Book.findAll({
       include: [{ association: 'authors' }]
     })
       .then((books) => {
+        if(req.session){
+          res.render('home', { usuario:req.session,books })
+        }
         res.render('home', { books });
       })
       .catch((error) => console.log(error));
   },
   bookDetail: (req, res) => {
+   
+    db.Book.findByPk(req.params.id)
+    .then(elemento=>{
+      res.render("bookDetail",{elemento})
+    })
+    .catch(error=>{
+      res.send(error)
+    })
     // Implement look for details in the database
-    res.render('bookDetail');
+  /*   res.render('bookDetail'); */
   },
   bookSearch: (req, res) => {
-    res.render('search', { books: [] });
+    db.Book.findAll({
+      where:{
+       title:{[Op.like]: "%"+req.body+"%"}}
+    })
+    .then(libros=>{
+      res.render('search', { libros });
+    })
+    .catch(error=>{
+      res.send(error)
+    })
+
+    
   },
   bookSearchResult: (req, res) => {
+    db.Book.findAll({
+      where:{
+       title:{[Op.like]: "%"+req.body.title+"%"}}
+    })
+    .then(libros=>{
+      res.render('search', { libros });
+    })
+    .catch(error=>{
+      res.send(error)
+    })
     // Implement search by title
-    res.render('search');
+   /*  res.render('search'); */
   },
   deleteBook: (req, res) => {
     // Implement delete book
@@ -33,9 +66,42 @@ const mainController = {
       })
       .catch((error) => console.log(error));
   },
-  authorBooks: (req, res) => {
+  authorBooks:(req, res) => {
     // Implement books by author
-    res.render('authorBooks');
+    db.BooksAuthors.findAll({
+      where: {
+        AuthorId:req.params.id
+      }})
+      .then(librosAutores=>{
+        let libros= librosAutores.map(elemento=>{
+           return db.Book.findByPk(
+            elemento.BookId)
+          
+        })
+        //hace un recorrido sobre librosautores con el map, lo que returna cada libro de autor, se usa el promise.all para que se ejecute las veces necesarias
+        return Promise.all(libros) })
+        .then(resultado=>{
+          res.render("authorBooks", {libros:resultado
+        })
+      })
+/*       return Promise.all(libros)
+
+        })
+        .then(libros2=>{
+          console.log(libro)
+          res.render("authorBooks",{libros:libros2})
+        }) */
+/*       .catch(e=>{
+        res.send(e)
+      }); */
+
+
+
+    
+
+   
+  
+ ; 
   },
   register: (req, res) => {
     res.render('register');
@@ -54,20 +120,133 @@ const mainController = {
       .catch((error) => console.log(error));
   },
   login: (req, res) => {
+ 
+        // Manejar el caso cuando no se encuentra el usuario o las credenciales son incorrectas
+    res.render("login", { error: "Usuario o contraseña incorrectos" });
+    
     // Implement login process
-    res.render('login');
+    
   },
   processLogin: (req, res) => {
     // Implement login process
-    res.render('home');
+    let usuarioEncontrado = false
+
+    db.User.findAll()
+    .then(resultado => {
+      ;
+  
+      resultado.forEach(elemento => {
+        if (elemento.Email == req.body.email) {
+          if (bcryptjs.compareSync(req.body.password,elemento.Pass )) {
+            req.session.usuarioLogueado= elemento
+            console.log(req.session.usuarioLogueado)
+            usuarioEncontrado = true;
+            res.cookie("id",elemento.Id,{maxAge: 60000*5})
+            return
+          } else {
+            usuarioEncontrado= false
+            // Contraseña incorrecta
+            res.render("login", {
+              errors: {
+                password: {
+                  msg: "Contraseña invalida"
+                }
+              }
+            });
+          }
+        }
+      });
+  
+      // Si se encontro el usuario, enviar "Logueaste"
+      if (usuarioEncontrado==true) {
+        res.redirect("/");
+      } else {
+        // Si no se encontro el usuario, envia un mensaje de error
+        res.render("login", {
+          errors: {
+            email: "el Email no existe"
+          }
+        });
+      }
+    })
+    .catch(error => {
+      // Enviar una respuesta de error
+      res.send(error);
+    });
+   
+  
+  },
+  logout:(req,res)=>{
+    //borro cookie
+    res.clearCookie("id")
+    //borro session
+    req.session.destroy()
+    console.log(req.session)
+    res.redirect("/")
   },
   edit: (req, res) => {
+  db.Book.findByPk(req.params.id)
+    .then(libro=>{
+       console.log(libro)
+       res.render('editBook', {id: req.params.id,libro})
+    })
+    .catch(e=>{
+      res.send(error)
+    })
+    
     // Implement edit book
-    res.render('editBook', {id: req.params.id})
+   
   },
-  processEdit: (req, res) => {
+  processEdit: (req, res) => {   
+    let {title,cover,description}=req.body
+
+    let nuevoLibro={
+      title:title,
+      cover:cover,
+      description:description
+    }
+
+    db.Book.update({
+      title:title,
+      cover:cover,
+      description:description},
+      {where:{id:req.params.id}})
+      .then(resultado=>{
+        res.redirect('/')
+      })
     // Implement edit book
-    res.render('home');
+    ;
+  },
+  delete:(req,res)=>{
+    db.Book.findByPk(req.params.id)
+    .then(libro=>
+      {res.render("delete",{libro:libro})}
+    )
+  },
+  deleteBook:(req,res)=>{
+
+    //hay que destruir la relacion primero antes de borrar el libro, en este caso
+    //se destruye porque no se puede modificar a 0 o null sino haria un update
+    db.BooksAuthors.destroy({
+      where:{
+        BookId:req.params.id
+      }
+    })
+    .then(libroBorrado=>{
+      db.Book.destroy({where:{
+      id:req.params.id
+    }}) 
+    .then(resultado=>{
+      res.redirect("/")
+    })
+
+
+
+
+    
+   
+    }
+    )
   }
 };
 

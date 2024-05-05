@@ -26,10 +26,13 @@
                 <div class="col-md-3 ps-5">
   
                   <h6 class="mb-0">Email</h6>
+
   
                 </div>
                 <div class="col-md-9 pe-5">
-  
+                    <% if(locals.errors&&errors.email){%>
+                  <h2 style="color: red;font-weight: bold;display: block;">Email no encontrado</h2>
+                    <% } %>
                   <input type="email" name="email" class="form-control form-control-lg" placeholder="example@gmail.com" />
   
                 </div>
@@ -44,7 +47,9 @@
   
                 </div>
                 <div class="col-md-9 pe-5">
-  
+                  <% if(locals.errors&&errors.password){%>
+                    <h2 style="color: red;font-weight: bold;display: block;">Contraseña invalida</h2>
+                      <% } %>
                   <input type="password" name="password" class="form-control form-control-lg" >
   
                 </div>

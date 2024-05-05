@@ -1,13 +1,28 @@
 const express = require('express');
+const session=require("express-session")
 const mainRouter = require('./routes/main');
-
+const methodOverride = require('method-override');
 const app = express();
+const usuario=require("./middlewares/sessionMiddleware")
+const admin=require("./middlewares/adminMiddleware")
+const cookies=require("cookie-parser")
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(methodOverride('_method'))
 
+app.use(session({
+  secret:"es un secreto",
+  resave:false,
+  saveUninitialized:true
+}))
+app.use(cookies())
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
+
+
+app.use(usuario)
+app.use(admin)
 
 app.use('/', mainRouter);
 
