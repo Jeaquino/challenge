@@ -2,7 +2,8 @@ const bcryptjs = require('bcryptjs');
 const db = require('../database/models');
 const Op = db.Sequelize.Op;
 const mainController = {
-  home: (req, res) => {
+  home: (req, res) => { 
+
     db.Book.findAll({
       include: [{ association: 'authors' }]
     })
@@ -15,6 +16,7 @@ const mainController = {
       .catch((error) => console.log(error));
   },
   bookDetail: (req, res) => {
+   
     db.Book.findByPk(req.params.id)
     .then(elemento=>{
       res.render("bookDetail",{elemento})
@@ -164,7 +166,7 @@ const mainController = {
   
       // Si se encontro el usuario, enviar "Logueaste"
       if (usuarioEncontrado==true) {
-        res.send("Logueaste");
+        res.redirect("/");
       } else {
         // Si no se encontro el usuario, envia un mensaje de error
         res.render("login", {

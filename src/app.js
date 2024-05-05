@@ -4,6 +4,7 @@ const mainRouter = require('./routes/main');
 const methodOverride = require('method-override');
 const app = express();
 const usuario=require("./middlewares/sessionMiddleware")
+const admin=require("./middlewares/adminMiddleware")
 
 
 app.use(express.urlencoded({ extended: false }));
@@ -18,6 +19,7 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', 'src/views');
 app.use(usuario)
+app.use(admin)
 app.use('/', mainRouter);
 
 app.listen(3000, () => {
