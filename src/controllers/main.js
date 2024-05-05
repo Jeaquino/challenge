@@ -7,6 +7,9 @@ const mainController = {
       include: [{ association: 'authors' }]
     })
       .then((books) => {
+        if(req.session){
+          res.render('home', { usuario:req.session,books })
+        }
         res.render('home', { books });
       })
       .catch((error) => console.log(error));
@@ -125,6 +128,15 @@ const mainController = {
   processLogin: (req, res) => {
     // Implement login process
     let usuarioEncontrado = false
+/* 
+    let usuario=db.User.findAll()
+    .then(resultado=>{
+      resultado.filter(elemento=>{
+       return elemento.Email==req.body.email
+        
+      })
+    })
+    console.log(usuario) */
     db.User.findAll()
     .then(resultado => {
       ;
@@ -132,6 +144,8 @@ const mainController = {
       resultado.forEach(elemento => {
         if (elemento.Email == req.body.email) {
           if (bcryptjs.compareSync(req.body.password,elemento.Pass )) {
+            req.session.usuarioLogueado= elemento
+            console.log(req.session.usuarioLogueado)
             usuarioEncontrado = true;
             return
           } else {
@@ -164,22 +178,13 @@ const mainController = {
       // Enviar una respuesta de error
       res.send(error);
     });
-      //--------------------
-   /*    resultado.forEach(elemento => {
-        if (elemento.email === req.body.Email && elemento.Pass === req.body.password) {
-          usuarioEncontrado = true;
-        }
-      });
-
-      if (usuarioEncontrado) {
-        console.log("logueaste")
-        res.redirect("/");
-      } else {
-        res.send("no se encontro ese usuario/contraseña")
-      } */
-      //------------------
-
+   
   
+  },
+  logout:(req,res)=>{
+    req.session.destroy()
+    console.log(req.session)
+    res.redirect("/")
   },
   edit: (req, res) => {
   db.Book.findByPk(req.params.id)

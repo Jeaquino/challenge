@@ -17,5 +17,6 @@ router.get("/books/delete/:id",mainController.delete)
 router.delete('/books/delete/:id', mainController.deleteBook);
 router.get('/books/edit/:id', mainController.edit);
 router.put('/books/edit/:id', mainController.processEdit);
+router.get("/logout",mainController.logout)
 
 module.exports = router;
